@@ -6,11 +6,12 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <pthread.h>
+#include "config.h"
 
 int network_socket;
 
 void* receive_messages(void* args) {
-    char server_response[256];
+    char server_response[MESSAGE_SIZE];
     int len;
     while((len = recv(network_socket, &server_response, sizeof(server_response), 0)) > 0) {
         server_response[len] = '\0';
@@ -28,7 +29,7 @@ int main(int argc,char *argv[]) {
 	// specify an address for the socket
 	struct sockaddr_in server_address;
 	server_address.sin_family = AF_INET;
-	server_address.sin_port = htons(9000);
+	server_address.sin_port = htons(PORT);
 	server_address.sin_addr.s_addr = INADDR_ANY;
 
 	int connection_status = connect(network_socket, (struct sockaddr *) &server_address, sizeof(server_address));
@@ -42,10 +43,10 @@ int main(int argc,char *argv[]) {
 
     pthread_create(&messages_receiver, NULL, receive_messages, NULL);
 
-    char message[256];
+    char message[MESSAGE_SIZE];
 
-    while(fgets(message, 256, stdin) > 0) {
-        char send_msg[256];
+    while(fgets(message, MESSAGE_SIZE, stdin) > 0) {
+        char send_msg[MESSAGE_SIZE];
         strcpy(send_msg, client_name);
         strcat(send_msg, ": ");
         strcat(send_msg, message);

@@ -6,18 +6,19 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <pthread.h>
+#include "config.h"
 
 
 int server_socket;
-int clients[5];
+int clients[MAX_CONNECTIONS];
 int connection_amount;
 pthread_mutex_t mutex;
-char welcome_message[256] = "Welcome to chat! (´｡• ᵕ •｡`) ♡ \n";
+char welcome_message[MESSAGE_SIZE] = "Welcome to chat! (´｡• ᵕ •｡`) ♡ \n";
 
 
 void send_messages(int from, char *message) {
     pthread_mutex_lock(&mutex);
-    for(int i = 0; i < 5; i++) {
+    for(int i = 0; i < MAX_CONNECTIONS; i++) {
         if (from != clients[i]) {
             send(clients[i], message, strlen(message), 0);
         }
@@ -28,7 +29,7 @@ void send_messages(int from, char *message) {
 
 void* client(void* arg) {
     int socket = *((int *) arg);
-    char message[256];
+    char message[MESSAGE_SIZE];
     int len;
     while((len = recv(socket, message, sizeof(message), 0)) > 0) {
         
@@ -46,12 +47,12 @@ int main() {
 
     struct sockaddr_in server_address;
     server_address.sin_family = AF_INET;
-    server_address.sin_port = htons(9000);
+    server_address.sin_port = htons(PORT);
     server_address.sin_addr.s_addr = INADDR_ANY;
 
     int bind_result = bind(server_socket, (struct sockaddr *) &server_address, sizeof(server_address));
 
-    listen(server_socket, 5);
+    listen(server_socket, MAX_CONNECTIONS);
 
     pthread_t receiver;
 
