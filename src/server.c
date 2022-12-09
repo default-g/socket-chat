@@ -63,11 +63,16 @@ int main() {
             printf("Connection failed!\n");
         }    
         pthread_mutex_lock(&mutex);
-
-        clients[connection_amount++] = client_socket;
-        printf("Connections : %d \n", connection_amount);
-        send(client_socket, welcome_message, strlen(welcome_message), 0);
-        pthread_create(&receiver, NULL, client, &client_socket);
+        if (connection_amount < 5) {
+            clients[connection_amount++] = client_socket;
+            printf("Connections : %d \n", connection_amount);
+            send(client_socket, welcome_message, strlen(welcome_message), 0);
+            pthread_create(&receiver, NULL, client, &client_socket);
+        } else {
+            char error_message[256] = "Max connection limit exceeded";
+            send(client_socket, error_message, strlen(error_message), 0);
+        }
+       
 
         pthread_mutex_unlock(&mutex);
     }
